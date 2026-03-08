@@ -69,6 +69,7 @@ import { Mutable } from "@zsviczian/excalidraw/types/common/src/utility-types";
 import { carveOutImage, carveOutPDF, createImageCropperFile } from "../../utils/carveout";
 import { showFrameSettings } from "../../shared/Dialogs/FrameSettings";
 import { insertImageToView } from "../../utils/excalidrawViewUtils";
+import { importNotabilityNote } from "../../utils/notabilityImport";
 import ExcalidrawPlugin from "src/core/main";
 import { UIModeSettings } from "src/shared/Dialogs/UIModeSettings";
 
@@ -211,6 +212,23 @@ export class CommandManager {
         fileMenuHandlerConvertReplaceExtension,
       ),
     );
+
+    this.addCommand({
+      id: "import-notability-note",
+      name: t("IMPORT_NOTABILITY_NOTE"),
+      checkCallback: (checking: boolean) => {
+        if (!DEVICE.isDesktop) {
+          return false;
+        }
+
+        if (checking) {
+          return true;
+        }
+
+        void importNotabilityNote(this.plugin);
+        return true;
+      },
+    });
 
     this.addCommand({
       id: "excalidraw-convert-image-from-url-to-local-file",

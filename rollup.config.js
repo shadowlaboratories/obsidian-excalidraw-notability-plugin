@@ -175,7 +175,13 @@ const BASE_CONFIG = {
     '@lezer/common',
     '@lezer/highlight',
     '@lezer/lr',
+    'crypto',
+    'fs',
+    'node:crypto',
+    'node:fs',
+    'node:path',
     'obsidian',
+    'path',
     '@zsviczian/excalidraw',
     'react',
     'react-dom'

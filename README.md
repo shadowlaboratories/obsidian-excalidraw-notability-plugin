@@ -2,6 +2,20 @@
 
 【English | [简体中文](./docs/zh-cn/README.md)】
 
+## Why this fork exists
+
+This repository is a Notability-focused fork of the Obsidian Excalidraw plugin. Upstream Obsidian Excalidraw is centered on native Excalidraw editing. This fork exists to preserve and render imported Notability ink more faithfully inside Obsidian by wiring the plugin to the [`excalidraw-notability`](https://github.com/shadowlaboratories/excalidraw-notability) renderer and adding direct `.note` import.
+
+The fork adds a desktop command, `Import Notability .note`, which:
+
+- reads a Notability `.note` archive directly from disk,
+- converts it into an Excalidraw scene for storage in your vault, and
+- keeps the imported Notability stroke payload so `excalidraw-notability` can render it with the Notability-aware stroke pipeline.
+
+The converter is still used at import time to parse the `.note` archive. The rendering work happens in `excalidraw-notability`, which is why this fork exists instead of a standalone converter-only workflow.
+
+See [docs/NotabilityImport.md](./docs/NotabilityImport.md) for the import flow and output format details.
+
 👉👉👉 Check out and contribute to the new [Obsidian-Excalidraw Community Wiki](https://excalidraw-obsidian.online/WIKI/Welcome+to+the+WIKI)
 
 The Obsidian-Excalidraw plugin integrates [Excalidraw](https://excalidraw.com/), a feature rich sketching tool, into Obsidian. You can store and edit Excalidraw files in your vault, you can embed drawings into your documents, and you can link to documents and other drawings to/and from Excalidraw. For a showcase of Excalidraw features, please read my blog post [here](https://www.zsolt.blog/2021/03/showcasing-excalidraw.html) and/or watch the videos below.

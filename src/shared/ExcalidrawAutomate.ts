@@ -1143,7 +1143,8 @@ export class ExcalidrawAutomate {
       const textElements = this.getElements().filter(el => el.type === "text") as ExcalidrawTextElement[];
       let outString = `# Excalidraw Data\n\n## Text Elements\n`;
       textElements.forEach(te=> {
-        outString += `${te.rawText ?? (te.originalText ?? te.text)} ^${te.id}\n\n`;
+        const textElement = te as ExcalidrawTextElement & { rawText?: string };
+        outString += `${textElement.rawText ?? (te.originalText ?? te.text)} ^${te.id}\n\n`;
       });
 
       const elementsWithLinks = this.getElements().filter( el => el.type !== "text" && el.link)
@@ -3473,7 +3474,8 @@ export class ExcalidrawAutomate {
     const {x, y, width, height, id} = element;
     return elements
       .filter(el => {
-        if((el.type==="frame" && el.frameRole==="marker")) return false;
+        const frameElement = el as ExcalidrawElement & { frameRole?: string };
+        if((el.type==="frame" && frameElement.frameRole==="marker")) return false;
         if(el.id === id) return true;
         const {topX, topY, width:w, height:h} = this.getBoundingBox([el]);
         const elLeft = topX;
@@ -3832,7 +3834,9 @@ export class ExcalidrawAutomate {
     if (!elements || elements.length === 0) {
       return;
     }
-    const API: ExcalidrawImperativeAPI = this.getExcalidrawAPI();
+    const API = this.getExcalidrawAPI() as ExcalidrawImperativeAPI & {
+      selectElements: (elements: ExcalidrawElement[]) => void;
+    };
     if(typeof elements[0] === "string") {
       const els = this.getViewElements().filter(el=>(elements as string[]).includes(el.id));
       API.selectElements(els);

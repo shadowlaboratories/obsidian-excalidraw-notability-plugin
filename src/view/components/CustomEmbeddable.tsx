@@ -345,7 +345,7 @@ function RenderObsidianView(
   linkText: string;
   view: ExcalidrawView;
   containerRef: React.RefObject<HTMLDivElement>;
-  activeEmbeddable: {element: ExcalidrawEmbeddableElement; state: string};
+  activeEmbeddable: UIAppState["activeEmbeddable"];
   theme: string;
   canvasColor: string;
   selectedElementId: string;

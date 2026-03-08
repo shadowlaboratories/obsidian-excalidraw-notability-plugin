@@ -8,8 +8,12 @@
     "lib/**/*"
   ],
   "scripts": {
+    "vendor:excalidraw-notability": "node scripts/prepare-excalidraw-notability.mjs",
+    "predev": "bun run vendor:excalidraw-notability",
     "dev": "cross-env NODE_ENV=development rollup --config rollup.config.js",
+    "prebuild": "bun run vendor:excalidraw-notability",
     "build": "cross-env NODE_ENV=production rollup --config rollup.config.js",
+    "prelib": "bun run vendor:excalidraw-notability",
     "lib": "cross-env NODE_ENV=lib rollup --config rollup.config.js",
     "code:fix": "eslint --max-warnings=0 --ext .ts,.tsx ./src --fix",
     "madge": "madge --circular .",

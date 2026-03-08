@@ -14,6 +14,10 @@ import { isWinCTRLorMacCMD } from "src/utils/modifierkeyHelper";
 import { ExcalidrawImperativeAPI } from "@zsviczian/excalidraw/types/excalidraw/types";
 import { CaptureUpdateAction } from "src/constants/constants";
 
+type EmbeddableElementCompat = ExcalidrawEmbeddableElement & {
+  scale?: [number, number];
+};
+
 export type EmbeddableMDCustomProps = {
   useObsidianDefaults: boolean;
   backgroundMatchCanvas: boolean;
@@ -43,12 +47,12 @@ export class EmbeddableSettings extends Modal {
     private plugin: ExcalidrawPlugin,
     private view: ExcalidrawView,
     private file: TFile,
-    private element: ExcalidrawEmbeddableElement
+    private element: EmbeddableElementCompat
   ) {
     super(plugin.app);
     this.ea = getEA(this.view);
     this.ea.copyViewElementsToEAforEditing([this.element]);
-    this.zoomValue = element.scale[0];
+    this.zoomValue = element.scale?.[0] ?? 1;
     this.isYouTube = isYouTube(this.element.link);
     this.notExcalidrawIsInternal = this.file && !this.view.plugin.isExcalidrawFile(this.file)
     this.isMDFile = this.file && this.file.extension.toLowerCase() === "md"; // && !this.view.plugin.isExcalidrawFile(this.file);
@@ -179,7 +183,7 @@ export class EmbeddableSettings extends Modal {
 
   private async applySettings() {
     let dirty = false;
-    const el = this.ea.getElement(this.element.id) as Mutable<ExcalidrawEmbeddableElement>;
+    const el = this.ea.getElement(this.element.id) as Mutable<EmbeddableElementCompat>;
     if(this.updatedFilepath) {
       const newPathWithExt = `${this.updatedFilepath}.${this.file.extension}`;
       if(newPathWithExt !== this.file.path) {
@@ -226,7 +230,7 @@ export class EmbeddableSettings extends Modal {
       dirty = true;
     }
 
-    if(this.zoomValue !== this.element.scale[0]) {
+    if(this.zoomValue !== (this.element.scale?.[0] ?? 1)) {
       dirty = true;
       
       el.scale = [this.zoomValue,this.zoomValue];
@@ -242,4 +246,3 @@ export class EmbeddableSettings extends Modal {
     }
   };
 }
-

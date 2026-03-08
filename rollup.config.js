@@ -19,9 +19,31 @@ dotenv.config();
 
 const DIST_FOLDER = 'dist';
 const absolutePath = path.resolve(DIST_FOLDER);
+const EXCALIDRAW_NOTABILITY_BUNDLE = path.resolve(
+  DIST_FOLDER,
+  "excalidraw-notability",
+);
 fs.mkdirSync(absolutePath, { recursive: true });
 const isProd = (process.env.NODE_ENV === "production");
 const isLib = (process.env.NODE_ENV === "lib");
+const EXCALIDRAW_NOTABILITY_JS = isProd
+  ? path.join(
+      EXCALIDRAW_NOTABILITY_BUNDLE,
+      "excalidraw-notability.production.min.js",
+    )
+  : path.join(
+      EXCALIDRAW_NOTABILITY_BUNDLE,
+      "excalidraw-notability.development.js",
+    );
+const EXCALIDRAW_NOTABILITY_CSS = isProd
+  ? path.join(
+      EXCALIDRAW_NOTABILITY_BUNDLE,
+      "excalidraw-notability.production.min.css",
+    )
+  : path.join(
+      EXCALIDRAW_NOTABILITY_BUNDLE,
+      "excalidraw-notability.development.css",
+    );
 console.log(`Running: ${process.env.NODE_ENV}; isProd: ${isProd}; isLib: ${isLib}`);
 
 
@@ -77,6 +99,14 @@ function minifyCode(code) {
   return minified.code;
 }
 
+function rewriteBundleAssetUrls(css) {
+  return css.replace(
+    /url\((['"]?)(?!data:|https?:|\/)([^'")]+)\1\)/g,
+    (_, quote, assetPath) =>
+      `url(${quote}./excalidraw-notability/${assetPath}${quote})`,
+  );
+}
+
 function compressLanguageFile(lang) {
   const inputDir = "./src/lang/locale";
   const filePath = `${inputDir}/${lang}.ts`;
@@ -85,9 +115,9 @@ function compressLanguageFile(lang) {
   return LZString.compressToBase64(minifyCode(`x = ${content};`));
 }
 
-const excalidraw_pkg = isLib ? "" : minifyCode(isProd
-  ? fs.readFileSync("./node_modules/@zsviczian/excalidraw/dist/excalidraw.production.min.js", "utf8")
-  : fs.readFileSync("./node_modules/@zsviczian/excalidraw/dist/excalidraw.development.js", "utf8"));
+const excalidraw_pkg = isLib
+  ? ""
+  : minifyCode(fs.readFileSync(EXCALIDRAW_NOTABILITY_JS, "utf8"));
 const react_pkg = isLib ? "" : minifyCode(isProd
   ? fs.readFileSync("./node_modules/react/umd/react.production.min.js", "utf8")
   : fs.readFileSync("./node_modules/react/umd/react.development.js", "utf8"));
@@ -97,9 +127,9 @@ const reactdom_pkg = isLib ? "" : minifyCode(isProd
 
 const lzstring_pkg = isLib ? "" : fs.readFileSync("./node_modules/lz-string/libs/lz-string.min.js", "utf8");
 if (!isLib) {
-  const excalidraw_styles = isProd
-    ? fs.readFileSync("./node_modules/@zsviczian/excalidraw/dist/styles.production.css", "utf8")
-    : fs.readFileSync("./node_modules/@zsviczian/excalidraw/dist/styles.development.css", "utf8");
+  const excalidraw_styles = rewriteBundleAssetUrls(
+    fs.readFileSync(EXCALIDRAW_NOTABILITY_CSS, "utf8"),
+  );
   const plugin_styles = fs.readFileSync("./styles.css", "utf8");
   const styles = excalidraw_styles + plugin_styles;
   cssnano()

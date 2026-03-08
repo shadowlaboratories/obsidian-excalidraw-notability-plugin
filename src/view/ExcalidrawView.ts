@@ -16,6 +16,7 @@ import {
 //import Excalidraw from "@zsviczian/excalidraw";
 import {
   ExcalidrawElement,
+  ExcalidrawFrameElement,
   ExcalidrawImageElement,
   ExcalidrawMagicFrameElement,
   ExcalidrawTextElement,
@@ -186,6 +187,24 @@ declare module "obsidian" {
 
 type SelectedElementWithLink = { id: string; text: string };
 type SelectedImage = { id: string; fileId: FileId };
+type TextElementCompat = ExcalidrawTextElement & {
+  rawText?: string;
+  hasTextLink?: boolean;
+};
+type FrameElementCompat = ExcalidrawFrameElement & {
+  frameRole?: string;
+};
+type FrameRenderingCompat = AppState["frameRendering"] & {
+  markerEnabled?: boolean;
+  markerName?: boolean;
+};
+
+const getRawText = (
+  element: ExcalidrawTextElement | Mutable<ExcalidrawTextElement>,
+) => (element as TextElementCompat).rawText;
+
+const getFrameRole = (element: ExcalidrawFrameElement) =>
+  (element as FrameElementCompat).frameRole;
 
 export enum TextMode {
   parsed = "parsed",
@@ -1400,7 +1419,7 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
         const textBody =
           this.textMode === TextMode.parsed
             ? this.excalidrawData.getRawText(selectedTextElement.id)
-            : selectedTextElement.rawText ?? selectedTextElement.text ?? selectedText.text;
+            : getRawText(selectedTextElement) ?? selectedTextElement.text ?? selectedText.text;
         addCandidate(textBody);
         addCandidate(selectedTextElement.link);
 
@@ -3301,7 +3320,7 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
       );
       const text:string[] = [];
       if(containerElement && containerElement.link) text.push(containerElement.link);
-      text.push(textElement.rawText);
+      text.push(getRawText(textElement) ?? textElement.text);
       const f = await createOrOverwriteFile(this.app, fname, text.join("\n"));
       if(f) {
         const ea:ExcalidrawAutomate = getEA(this);
@@ -3380,7 +3399,7 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
       if (el.length === 1) {
         ea.copyViewElementsToEAforEditing(el);
         const textElement = ea.getElement(el[0].id) as Mutable<ExcalidrawTextElement>;
-        textElement.text = textElement.originalText = textElement.rawText =
+        textElement.text = textElement.originalText = (textElement as TextElementCompat).rawText =
             `[${data.meta.title}](${text})`;
         await ea.addElementsToView(false, false, false);
         ea.destroy();
@@ -3758,13 +3777,13 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
         await this.excalidrawData.addTextElement(
           textElement.id,
           textElement.text,
-          textElement.rawText, //TODO: implement originalText support in ExcalidrawAutomate
+          getRawText(textElement), //TODO: implement originalText support in ExcalidrawAutomate
         );
       if (link) {
         if (this.plugin.settings.syncElementLinkWithText) {
           textElement.link = link;
         } else {
-          textElement.hasTextLink = true;
+          (textElement as TextElementCompat).hasTextLink = true;
         }
       }
       if (this.textMode === TextMode.parsed && !textElement?.isDeleted) {
@@ -4472,10 +4491,10 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
       this.setShouldSaveImportedImageFlag();
     }
 
-    if(data?.elements) {
-      data.elements
-        .filter(el=>el.type==="text" && !el.hasOwnProperty("rawText"))
-        .forEach(el=>(el as Mutable<ExcalidrawTextElement>).rawText = (el as ExcalidrawTextElement).originalText);
+      if(data?.elements) {
+        data.elements
+          .filter(el=>el.type==="text" && !el.hasOwnProperty("rawText"))
+          .forEach(el=>((el as Mutable<TextElementCompat>).rawText = (el as ExcalidrawTextElement).originalText));
 
       data.elements
         .filter((el): el is Mutable<ExcalidrawImageElement> => el.type === "image" && Boolean((el as any).customData?.latex))
@@ -4716,7 +4735,7 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
     }
     const raw = this.excalidrawData.getRawText(textElement.id);
     if (!raw) {
-      return textElement.rawText;
+      return getRawText(textElement);
     }
     return raw;
   }
@@ -4766,7 +4785,7 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
         const el = elements.filter((el:ExcalidrawElement)=>el.id === textElement.id);
         if(el.length === 1) {
           const clone = cloneElement(el[0]);
-          clone.rawText = WARNING;
+          (clone as TextElementCompat).rawText = WARNING;
           elements[elements.indexOf(el[0])] = clone;
           this.excalidrawData.setTextElement(clone.id,WARNING,()=>{});
           this.updateScene({elements, captureUpdate: CaptureUpdateAction.NEVER});
@@ -4901,14 +4920,14 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
         updatedNextOriginalText: parseResultOriginal.parsed,
         nextLink: this.plugin.settings.syncElementLinkWithText
         ? textElement.link
-        : (parseResultOriginal.hasTextLink ? textElement.rawText : null)
+        : (parseResultOriginal.hasTextLink ? getRawText(textElement) ?? null : null)
       };
     }
     return {
       updatedNextOriginalText: null,
       nextLink: this.plugin.settings.syncElementLinkWithText
       ? textElement.link
-      : (parseResultOriginal.hasTextLink ? textElement.rawText : null)
+      : (parseResultOriginal.hasTextLink ? getRawText(textElement) ?? null : null)
     };
   }
 
@@ -4922,7 +4941,7 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
     let textLink = "";
     //if element is type text and element has multiple links, then submit the element text to linkClick to trigger link suggester
     if(element.type === "text") {
-      const linkText = element.rawText.replaceAll("\n", ""); //https://github.com/zsviczian/obsidian-excalidraw-plugin/issues/187
+      const linkText = (getRawText(element as ExcalidrawTextElement) ?? "").replaceAll("\n", ""); //https://github.com/zsviczian/obsidian-excalidraw-plugin/issues/187
       const partsArray = REGEX_LINK.getResList(linkText);
       if(partsArray.filter(p=>Boolean(p.value)).length >= 1) {
         textLink = linkText;
@@ -4969,7 +4988,7 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
       let textLink = "";
       //if element is type text and element has multiple links, then submit the element text to linkClick to trigger link suggester
       if(element.type === "text") {
-        const linkText = element.rawText.replaceAll("\n", ""); //https://github.com/zsviczian/obsidian-excalidraw-plugin/issues/187
+        const linkText = (getRawText(element as ExcalidrawTextElement) ?? "").replaceAll("\n", ""); //https://github.com/zsviczian/obsidian-excalidraw-plugin/issues/187
         const partsArray = REGEX_LINK.getResList(linkText);
         if(partsArray.filter(p=>Boolean(p.value)).length >= 1) {
           textLink = linkText;
@@ -5209,7 +5228,7 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
         if(
           containerElement &&
           selectedTextElement.link &&
-          this.excalidrawData.getParsedText(selectedTextElement.id) === selectedTextElement.rawText
+          this.excalidrawData.getParsedText(selectedTextElement.id) === getRawText(selectedTextElement)
         ) {
           contextMenuActions.push([
             renderContextMenuAction(
@@ -5474,9 +5493,9 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
 
       if(
         !areElementsSelected &&
-        elements.some(el=>el.type === "frame" && el.frameRole === "marker")
+        elements.some(el=>el.type === "frame" && getFrameRole(el as ExcalidrawFrameElement) === "marker")
       ) {
-        const {frameRendering} = appState;
+        const frameRendering = appState.frameRendering as FrameRenderingCompat;
         contextMenuActions.push([
           renderContextMenuAction(
             React,
@@ -6377,7 +6396,8 @@ export default class ExcalidrawView extends TextFileView implements HoverParent{
     if (!api) {
       return;
     }
-    const disableContextMenu = api.getAppState().disableContextMenu;
+    const disableContextMenu =
+      (api.getAppState() as AppState).disableContextMenu ?? false;
     this.updateScene({appState: {disableContextMenu: !disableContextMenu}, captureUpdate: CaptureUpdateAction.NEVER});
   }
 

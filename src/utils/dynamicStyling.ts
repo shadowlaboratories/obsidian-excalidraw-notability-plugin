@@ -4,7 +4,10 @@ import { ExcalidrawAutomate } from "src/shared/ExcalidrawAutomate";
 import ExcalidrawView from "src/view/ExcalidrawView";
 import { DynamicStyle } from "src/types/types";
 import { cloneElement } from "./excalidrawAutomateUtils";
-import { ExcalidrawFrameElement } from "@zsviczian/excalidraw/types/element/src/types";
+import {
+  ExcalidrawElement,
+  ExcalidrawFrameElement,
+} from "@zsviczian/excalidraw/types/element/src/types";
 import { addAppendUpdateCustomData } from "./utils";
 import { CaptureUpdateAction } from "src/constants/constants";
 
@@ -165,8 +168,10 @@ export const setDynamicStyle = (
       fill: str((isDark?gray2().lighterBy(30):gray2().darkerBy(30)).alphaTo(0.2)),
       nameColor: str(isDark?gray2().lighterBy(50):gray2().darkerBy(50)),
     }
-    const scene = api.getSceneElements();
-    scene.filter(el=>el.type==="frame").forEach((e:ExcalidrawFrameElement)=>{
+    const scene = api.getSceneElements() as ExcalidrawElement[];
+    scene
+      .filter((el): el is ExcalidrawFrameElement => el.type === "frame")
+      .forEach((e) => {
       const f = cloneElement(e);
       addAppendUpdateCustomData(f,{frameColor});
       if(

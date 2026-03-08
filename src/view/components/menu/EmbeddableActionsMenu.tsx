@@ -17,6 +17,11 @@ import { getEA } from "src/core";
 import { ExcalidrawAutomate } from "src/shared/ExcalidrawAutomate";
 import { CaptureUpdateAction } from "src/constants/constants";
 
+type FrameLikeElement = {
+  contentWindow?: Window | null;
+  src?: string;
+};
+
 export class EmbeddableMenu {
   private menuFadeTimeout: number = 0;
   private menuElementId: string = null;
@@ -214,14 +219,14 @@ export class EmbeddableMenu {
     this.view.app.commands.executeCommandById("obsidian-excalidraw-plugin:crop-image");
   }
 
-  private actionReload (iframe: HTMLIFrameElement, link: string) {
+  private actionReload (iframe: FrameLikeElement, link: string) {
     iframe.src = link;
   }
 
-  private actionOpen (iframe: HTMLIFrameElement, element: ExcalidrawEmbeddableElement) {
+  private actionOpen (iframe: FrameLikeElement, element: ExcalidrawEmbeddableElement) {
     openExternalLink(
-      !iframe.src.startsWith("https://www.youtube.com") && !iframe.src.startsWith("https://player.vimeo.com") 
-        ? iframe.src
+      !iframe.src?.startsWith("https://www.youtube.com") && !iframe.src?.startsWith("https://player.vimeo.com") 
+        ? iframe.src ?? element.link
         : element.link,
       this.view.app
     );
@@ -366,9 +371,9 @@ export class EmbeddableMenu {
       }
     }
     if(isObsidianiFrame || isExcalidrawiFrame) {
-      const iframe = isExcalidrawiFrame
+      const iframe = (isExcalidrawiFrame
         ? api.getHTMLIFrameElement(element.id)
-        : view.getEmbeddableElementById(element.id);
+        : view.getEmbeddableElementById(element.id)) as FrameLikeElement | null;
       if(!iframe || !iframe.contentWindow) return null;
       const { x, y } = sceneCoordsToViewportCoords( { sceneX: element.x, sceneY: element.y }, appState);
       const top = `${y-2.5*ROOTELEMENTSIZE-appState.offsetTop}px`;
@@ -393,7 +398,7 @@ export class EmbeddableMenu {
               display: "block",
             }}
           >
-            {(iframe.src !== link) && !iframe.src.startsWith("https://www.youtube.com") && !iframe.src.startsWith("https://player.vimeo.com") && (
+            {(iframe.src !== link) && !iframe.src?.startsWith("https://www.youtube.com") && !iframe.src?.startsWith("https://player.vimeo.com") && (
               <ActionButton
                 key={"Reload"}
                 title={t("RELOAD")}

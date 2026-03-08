@@ -1,0 +1,4 @@
+[submodule "vendor/excalidraw-notability"]
+	path = vendor/excalidraw-notability
+	url = git@github.com:shadowlaboratories/excalidraw-notability.git
+	branch = master

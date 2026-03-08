@@ -10,6 +10,56 @@
     "esModuleInterop": true,
     "importHelpers": true,
     "resolveJsonModule": true,
+    "paths": {
+      "@zsviczian/excalidraw/types/excalidraw/types": [
+        "src/types/excalidraw-app-types-compat.d.ts"
+      ],
+      "@zsviczian/excalidraw/types/element/src/types": [
+        "src/types/excalidraw-element-types-compat.d.ts"
+      ],
+      "@zsviczian/excalidraw": [
+        "dist/excalidraw-notability-types/excalidraw/index.d.ts"
+      ],
+      "@zsviczian/excalidraw/types/excalidraw/*": [
+        "dist/excalidraw-notability-types/excalidraw/*"
+      ],
+      "@zsviczian/excalidraw/types/common/*": [
+        "dist/excalidraw-notability-types/common/*"
+      ],
+      "@zsviczian/excalidraw/types/element/*": [
+        "dist/excalidraw-notability-types/element/*"
+      ],
+      "@zsviczian/excalidraw/types/math/*": [
+        "dist/excalidraw-notability-types/math/*"
+      ],
+      "@zsviczian/excalidraw/types/utils/*": [
+        "dist/excalidraw-notability-types/utils/*"
+      ],
+      "@excalidraw/common": [
+        "dist/excalidraw-notability-types/common/src/index.d.ts"
+      ],
+      "@excalidraw/common/*": [
+        "dist/excalidraw-notability-types/common/src/*"
+      ],
+      "@excalidraw/element": [
+        "dist/excalidraw-notability-types/element/src/index.d.ts"
+      ],
+      "@excalidraw/element/*": [
+        "dist/excalidraw-notability-types/element/src/*"
+      ],
+      "@excalidraw/math": [
+        "dist/excalidraw-notability-types/math/src/index.d.ts"
+      ],
+      "@excalidraw/math/*": [
+        "dist/excalidraw-notability-types/math/src/*"
+      ],
+      "@excalidraw/utils": [
+        "dist/excalidraw-notability-types/utils/src/index.d.ts"
+      ],
+      "@excalidraw/utils/*": [
+        "dist/excalidraw-notability-types/utils/src/*"
+      ]
+    },
     "lib": [
       "dom",
       "scripthost",
@@ -20,8 +70,8 @@
     "inlineSourceMap": true,
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx", "src/Dialogs/OpenDrawing.ts",
-    "src/types/types.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/types/**/*.d.ts"
   ]
 }
